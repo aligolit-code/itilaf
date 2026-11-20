@@ -1,7 +1,7 @@
 import streamlit as st
 
 st.set_page_config(page_title="ائتلاف | منصة الباحثين", page_icon="📚", layout="wide")
-
+st.image("Screenshot_20261120_230914_com_whatsapp_ViewProfilePhoto.jpg", width=200)
 st.markdown("<h1 style='text-align:center'>ائتلاف</h1>", unsafe_allow_html=True)
 st.markdown("<h3 style='text-align:center'>منصة تجمع الباحثين السودانيين</h3>", unsafe_allow_html=True)
 st.markdown("---")
