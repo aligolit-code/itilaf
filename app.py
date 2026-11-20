@@ -3,7 +3,6 @@ import os
 
 st.set_page_config(page_title="منصة الباحثين", layout="centered")
 
-# الشعار - بفتش الصورة براهو
 for f in os.listdir("."):
     if f.startswith("Screenshot") and f.endswith((".jpg", ".png", ".jpeg")):
         st.image(f, use_container_width=True)
@@ -14,7 +13,6 @@ st.markdown("<h3 style='text-align:center'>منصة تجمع الباحثين ا
 st.markdown("---")
 st.write("الأوراق العلمية، والفرص البحثية في مكان واحد.")
 
-# الباحثين والباسويردات
 researchers = {
     "مكارم": "makarem123",
     "ثوية": "thawya123",
@@ -29,7 +27,6 @@ researchers = {
     "دكتورة نادية": "nadia123",
 }
 
-# الستايل الأصفر المنور - نفس الصيغة القديمة
 st.markdown("""
 <style>
 .stButton > button {
@@ -65,6 +62,7 @@ with tab2:
     for name, password in researchers.items():
         if st.button(f"✨ {name} ✨", key=f"btn_{name}"):
             st.session_state["selected"] = name
+            st.session_state["logged_in"] = False
 
     if "selected" in st.session_state:
         name = st.session_state["selected"]
@@ -72,12 +70,40 @@ with tab2:
         pw = st.text_input("اكتب كلمة سرك", type="password", key=f"pw_{name}")
         if st.button("ادخل مكان النقاش", key=f"enter_{name}"):
             if pw == researchers[name]:
-                st.success(f"أهلاً بيك {name}، دخلت ملفك ✅")
-                st.write(f"هنا ملف {name} الخاص - مكان النقاش والبحوث.")
+                st.session_state["logged_in"] = True
             elif pw == "":
                 st.warning("اكتب كلمة سرك أولاً")
             else:
                 st.error("كلمة السر غلط، حاول تاني")
+
+        # هنا محل الكتابة - بيظهر بعد الدخول الصح
+        if st.session_state.get("logged_in"):
+            st.success(f"أهلاً بيك {name}، دخلت ملفك ✅")
+            st.markdown(f"### 💬 مكان النقاش الخاص بـ {name}")
+            st.write("اكتب هنا أي حاجة داير تناقشها، أو فكرة بحث، أو سؤال:")
+
+            # مكان الكتابة
+            new_msg = st.text_area("اكتب رسالتك هنا...", key=f"msg_input_{name}", height=120)
+
+            if st.button("📩 انشر رسالتي", key=f"send_{name}"):
+                if new_msg.strip() != "":
+                    key_chat = f"chat_{name}"
+                    if key_chat not in st.session_state:
+                        st.session_state[key_chat] = []
+                    st.session_state[key_chat].append(new_msg)
+                    st.success("اتنشرت رسالتك ✅")
+                else:
+                    st.warning("اكتب حاجة أولاً")
+
+            # عرض الرسائل
+            st.markdown("---")
+            st.write("**رسائلك المنشورة:**")
+            key_chat = f"chat_{name}"
+            if key_chat in st.session_state and len(st.session_state[key_chat]) > 0:
+                for i, m in enumerate(reversed(st.session_state[key_chat])):
+                    st.info(f"{m}")
+            else:
+                st.write("لسه ما كتبت حاجة، اكتب أول رسالة فوق 👆")
 
 with tab3:
     st.subheader("الأبحاث")
