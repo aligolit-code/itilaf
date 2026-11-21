@@ -41,8 +41,8 @@ researchers = ["مستر ناجي","دكتورة نادية","نشوى","مكا�
 tab1, tab2 = st.tabs(["الباحثون", "الابحاث"])
 
 with tab1:
-    st.write("اختار اسمك من القائمة:")
-    name = st.selectbox("اسمك:", researchers)
+    st.write("اختار اسمك:")
+    name = st.radio("اسمك:", researchers)
     if st.button("ادخل غرفة النقاش"):
         st.session_state["selected"] = name
     if "selected" in st.session_state:
