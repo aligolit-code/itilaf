@@ -6,6 +6,8 @@ st.set_page_config(page_title="باحثين الائتلاف السوداني", 
 
 st.markdown("""
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;700&display=swap');
+* { font-family: 'Noto Naskh Arabic', serif !important; }
 .main-title{ font-size:38px; font-weight:900; text-align:center; padding:10px; border-bottom:3px solid #FFD700; }
 .stButton>button{ background:#FFD700 !important; color:#000 !important; font-size:20px; font-weight:bold; border-radius:20px; width:100%; padding:15px; }
 </style>
