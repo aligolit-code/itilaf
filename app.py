@@ -5,12 +5,7 @@ import json
 st.set_page_config(page_title="باحثين الائتلاف السوداني", layout="centered")
 
 st.markdown("""
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
-html, body, [class*="css"] {
-    font-family: 'Cairo', 'Tahoma', sans-serif !important;
-    direction: rtl !important;
-}
 .main-title{ font-size:38px; font-weight:900; text-align:center; padding:10px; border-bottom:3px solid #FFD700; }
 .stButton>button{ background:#FFD700 !important; color:#000 !important; font-size:20px; font-weight:bold; border-radius:20px; width:100%; padding:15px; }
 </style>
@@ -33,7 +28,7 @@ if "data" not in st.session_state:
     st.session_state.data = load_data()
 data = st.session_state.data
 
-st.markdown('<div class="main-title"><span style="color:#FF2D2D;">باحثين الائتلاف</span> <span style="color:#00E676;">السوداني</span></div>', unsafe_allow_html=True)
+st.markdown('<div class="main-title">باحثين الائتلاف السوداني</div>', unsafe_allow_html=True)
 st.markdown("---")
 
 researchers = ["مستر ناجي","دكتورة نادية","نشوى","مكارم","ثويبة","فكتوريا","علي","هديل","هناء","سعاد","صالح","رحاب","سليمى","معاذ","أمنة"]
