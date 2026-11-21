@@ -11,12 +11,4 @@ st.markdown('<div class="main-title">منصة باحثي الائتلاف الس
 st.markdown('<div class="sub-title">الاوراق العلمية، والفرص البحثية في مكان واحد</div>', unsafe_allow_html=True)
 st.markdown('---')
 researchers=['مستر ناجي','دكتورة نادية','نشوى','مكارم','ثويبة','فكتوريا','علي','هديل','هناء','سعاد','صالح','رحاب','سليمى','معاذ','أمنة']
-tab1,tab2,tab3=st.tabs(['اضف بحثك','الباحثون','الابحاث'])
-with tab1:
-    st.subheader('اضف بحثك')
-    st.write('ارفع بحثك هنا وشاركو مع باقي الباحثين.')
-with tab2:
-    st.subheader('الباحثون')
-    st.write('اضغط على اسمك واكتب طوالي')
-    for name in researchers:
-        if st.button(f'{name}', key=f'btn
+tab1,tab2,tab3=st.tabs(
