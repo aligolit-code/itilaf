@@ -5,8 +5,8 @@ st.set_page_config(page_title='باحثين الائتلاف السوداني', 
 
 st.markdown("""
 <style>
-.main-title{ font-size:36px; font-weight:900; text-align:center; color:#111; }
-.sub-title{ text-align:center; color:#555; font-size:16px; }
+.main-title{ font-size:38px; font-weight:900; text-align:center; padding:10px; border-bottom:3px solid #FFD700; text-shadow: 2px 2px 4px #000; }
+.sub-title{ text-align:center; color:#E0E0E0; font-size:16px; }
 .stButton>button{ background:#FFD700 !important; color:#000 !important; font-size:20px; font-weight:bold; border-radius:20px; border:2px solid #FFC400; width:100%; padding:15px; }
 </style>
 """, unsafe_allow_html=True)
@@ -23,7 +23,7 @@ def save_data(data):
 if 'data' not in st.session_state: st.session_state.data = load_data()
 data = st.session_state.data
 
-st.markdown('<div class="main-title">باحثين الائتلاف السوداني</div>', unsafe_allow_html=True)
+st.markdown('<div class="main-title"><span style="color:#FF2D2D;">باحثين الائتلاف</span> <span style="color:#00E676;">السوداني</span></div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-title">الاوراق العلمية، والفرص البحثية في مكان واحد</div>', unsafe_allow_html=True)
 st.markdown('---')
 
