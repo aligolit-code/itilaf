@@ -10,50 +10,13 @@ for f in os.listdir('.'):
 st.markdown('<div class="main-title">منصة باحثي الائتلاف السوداني</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-title">الاوراق العلمية، والفرص البحثية في مكان واحد</div>', unsafe_allow_html=True)
 st.markdown('---')
-researchers={'مستر ناجي':'nagi123','دكتورة نادية':'nadia123','نشوى':'nashwa123','مكارم':'makarem123','ثويبة':'thawiba123','فكتوريا':'victoria123','علي':'ali123','هديل':'hadeel123','هناء':'hanaa123','سعاد':'suad123','صالح':'saleh123','رحاب':'rehab123','سليمى':'salma123','معاذ':'moaz123','أمنة':'amna123'}
+researchers=['مستر ناجي','دكتورة نادية','نشوى','مكارم','ثويبة','فكتوريا','علي','هديل','هناء','سعاد','صالح','رحاب','سليمى','معاذ','أمنة']
 tab1,tab2,tab3=st.tabs(['اضف بحثك','الباحثون','الابحاث'])
 with tab1:
     st.subheader('اضف بحثك')
     st.write('ارفع بحثك هنا وشاركو مع باقي الباحثين.')
 with tab2:
     st.subheader('الباحثون')
-    st.write('اضغط على اسمك واكتب كلمة سرك لتدخل ملفك')
-    for name,password in researchers.items():
-        if st.button(f'{name}', key=f'btn_{name}'):
-            st.session_state['selected']=name
-            st.session_state['logged_in']=False
-    if 'selected' in st.session_state:
-        name=st.session_state['selected']
-        st.markdown(f'### مرحبا {name}')
-        pw=st.text_input('اكتب كلمة سرك', type='password', key=f'pw_{name}')
-        if st.button('ادخل مكان النقاش', key=f'enter_{name}'):
-            if pw==researchers[name]:
-                st.session_state['logged_in']=True
-            elif pw=='':
-                st.warning('اكتب كلمة سرك اولا')
-            else:
-                st.error('كلمة السر غلط، حاول تاني')
-        if st.session_state.get('logged_in'):
-            st.success(f'اهلا بيك {name}، دخلت ملفك')
-            st.markdown(f'### مكان النقاش الخاص بـ {name}')
-            new_msg=st.text_area('اكتب رسالتك هنا...', key=f'msg_input_{name}', height=120)
-            if st.button('انشر رسالتي', key=f'send_{name}'):
-                if new_msg.strip()!='':
-                    key_chat=f'chat_{name}'
-                    if key_chat not in st.session_state:
-                        st.session_state[key_chat]=[]
-                    st.session_state[key_chat].append(new_msg)
-                    st.success('اتنشرت رسالتك')
-                else:
-                    st.warning('اكتب حاجة اولا')
-            st.markdown('---')
-            st.write('رسائلك المنشورة:')
-            key_chat=f'chat_{name}'
-            if key_chat in st.session_state and len(st.session_state[key_chat])>0:
-                for m in reversed(st.session_state[key_chat]):
-                    st.info(f'{m}')
-            else:
-                st.write('لسه ما كتبت حاجة')
-with tab3:
-    st.subheader('الابحاث')
-    st.write('قريبا: احدث الاوراق والابحاث المنشورة')
+    st.write('اضغط على اسمك واكتب طوالي')
+    for name in researchers:
+        if st.button(f'{name}', key=f'btn
