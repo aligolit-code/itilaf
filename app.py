@@ -1,22 +1,34 @@
 import streamlit as st
 import os, json
 
-st.set_page_config(page_title='منصة باحثي الائتلاف السوداني', layout='centered')
-st.markdown('<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@700&family=Cairo:wght@900&display=swap" rel="stylesheet">', unsafe_allow_html=True)
+st.set_page_config(page_title='باحثين الائتلاف السوداني', layout='centered')
 
-css = '.main-title{font-family:Amiri,Cairo,serif;font-size:38px;font-weight:700;text-align:center;background:linear-gradient(45deg,#FFD700,#FF8C00,#FFD700,#00B894);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}'
-css += '.sub-title{font-family:Cairo,sans-serif;text-align:center;color:#666;font-size:16px;}'
-css += '.stButton>button{background:linear-gradient(45deg,#FFD700,#FFEA00);color:#000;font-size:20px;font-weight:bold;border-radius:20px;border:2px solid #FFC400;box-shadow:0 0 20px #FFD700;width:100%;padding:15px;}'
-st.markdown('<style>' + css + '</style>', unsafe_allow_html=True)
+# إصلاح العربي - بدون قريدينت عشان ما يتكسر
+st.markdown("""
+<style>
+html, body, [dir="rtl"] { direction: rtl; text-align: right; }
+.main-title{
+  font-family: 'Cairo', sans-serif;
+  font-size: 36px; font-weight: 900; text-align: center;
+  color: #111; background: none !important;
+  -webkit-text-fill-color: #111 !important;
+}
+.sub-title{ font-family: 'Cairo', sans-serif; text-align: center; color: #555; font-size: 16px; }
+.stButton>button{
+  background: #FFD700 !important; color: #000 !important;
+  font-size: 20px; font-weight: bold; border-radius: 20px;
+  border: 2px solid #FFC400; width: 100%; padding: 15px;
+}
+</style>
+""", unsafe_allow_html=True)
 
-# --- حفظ دائم في ملف ---
 def load_data():
     if os.path.exists('data.json'):
         try:
             with open('data.json','r',encoding='utf-8') as f:
                 return json.load(f)
         except: pass
-    return {"chats": {}, "papers": []}
+    return {"chats": [], "papers": []}
 
 def save_data(data):
     with open('data.json','w',encoding='utf-8') as f:
@@ -26,12 +38,8 @@ if 'data' not in st.session_state:
     st.session_state.data = load_data()
 data = st.session_state.data
 
-for f in os.listdir('.'):
-    if f.startswith('Screenshot') and (f.endswith('.jpg') or f.endswith('.png')):
-        st.image(f, use_container_width=True)
-        break
-
-st.markdown('<div class="main-title">منصة باحثي الائتلاف السوداني</div>', unsafe_allow_html=True)
+# بدون شعار - عنوان بس
+st.markdown('<div class="main-title">باحثين الائتلاف السوداني</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-title">الاوراق العلمية، والفرص البحثية في مكان واحد</div>', unsafe_allow_html=True)
 st.markdown('---')
 
@@ -57,30 +65,30 @@ with tab1:
 
 with tab2:
     st.subheader('الباحثون')
-    st.write('اضغط على اسمك واكتب طوالي')
+    st.write('اضغط على اسمك عشان تخش غرفة النقاش الواحدة')
     for name in researchers:
         if st.button(name, key='btn_'+name):
             st.session_state['selected'] = name
     if 'selected' in st.session_state:
         name = st.session_state['selected']
         st.markdown('### مرحبا ' + name)
-        st.markdown('### مكان النقاش الخاص بـ ' + name)
-        new_msg = st.text_area('اكتب رسالتك هنا...', key='msg_'+name)
-        if st.button('انشر رسالتي', key='send_'+name):
+        st.markdown('### غرفة النقاش - كل الباحثين سوا')
+        new_msg = st.text_area('اكتب رسالتك هنا...', key='msg_general')
+        if st.button('انشر رسالتي', key='send_general'):
             if new_msg.strip() != '':
-                if name not in data['chats']: data['chats'][name] = []
-                data['chats'][name].append(new_msg)
+                data['chats'].append({'name': name, 'text': new_msg})
                 save_data(data)
                 st.success('اتنشرت رسالتك')
                 st.rerun()
             else:
                 st.warning('اكتب حاجة اولا')
         st.markdown('---')
-        st.write('رسائلك المنشورة:')
-        msgs = data['chats'].get(name, [])
-        if msgs:
-            for m in reversed(msgs): st.info(m)
-        else: st.write('لسه ما كتبت حاجة')
+        st.write('رسائل كل الباحثين:')
+        if data['chats']:
+            for m in reversed(data['chats']):
+                st.info(m['name'] + ' : ' + m['text'])
+        else:
+            st.write('لسه ما في رسائل')
 
 with tab3:
     st.subheader('الابحاث')
