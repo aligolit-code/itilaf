@@ -4,9 +4,14 @@ import os, json
 st.set_page_config(page_title='باحثين الائتلاف السوداني', layout='centered')
 
 st.markdown("""
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
-.main-title{ font-size:38px; font-weight:900; text-align:center; padding:10px; border-bottom:3px solid #FFD700; text-shadow: 2px 2px 4px #000; }
-.stButton>button{ background:#FFD700 !important; color:#000 !important; font-size:20px; font-weight:bold; border-radius:20px; border:2px solid #FFC400; width:100%; padding:15px; }
+html, body, [class*="css"] {
+    font-family: 'Cairo', 'Tahoma', sans-serif !important;
+    direction: rtl !important;
+}
+.main-title{ font-size:38px; font-weight:900; text-align:center; padding:10px; border-bottom:3px solid #FFD700; }
+.stButton>button{ background:#FFD700 !important; color:#000 !important; font-size:20px; font-weight:bold; border-radius:20px; width:100%; padding:15px; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -16,6 +21,7 @@ def load_data():
             with open('data.json','r',encoding='utf-8') as f: return json.load(f)
         except: pass
     return {"chats": [], "papers": []}
+
 def save_data(data):
     with open('data.json','w',encoding='utf-8') as f: json.dump(data, f, ensure_ascii=False, indent=2)
 
@@ -30,10 +36,10 @@ researchers = ['مستر ناجي','دكتورة نادية','نشوى','مكا�
 tab1, tab2 = st.tabs(['الباحثون', 'الابحاث'])
 
 with tab1:
-    st.write('اضغط على اسمك عشان تخش غرفة النقاش الواحدة')
-    for name in researchers:
-        if st.button(name, key='btn_'+name):
-            st.session_state['selected'] = name
+    st.write('اختار اسمك من القائمة:')
+    name = st.selectbox('اسمك:', researchers)
+    if st.button('ادخل غرفة النقاش'):
+        st.session_state['selected'] = name
     if 'selected' in st.session_state:
         name = st.session_state['selected']
         st.markdown('### مرحبا ' + name)
@@ -48,14 +54,4 @@ with tab1:
         st.write('رسائل كل الباحثين:')
         if data['chats']:
             for m in reversed(data['chats']): st.info(m['name'] + ' : ' + m['text'])
-        else: st.write('لسه ما في رسائل')
-
-with tab2:
-    st.subheader('الابحاث')
-    if not data['papers']: st.write('لسه ما في ابحاث منشورة')
-    for p in reversed(data['papers']):
-        st.markdown(f"**{p['title']}** - بواسطة {p['author']}")
-        if os.path.exists(p['file']):
-            with open(p['file'],'rb') as f:
-                st.download_button(f"تحميل {p['title']}", f, file_name=os.path.basename(p['file']), key=p['title']+p['author'])
-        st.markdown('---')
+        else: st.write('لسه ما في
