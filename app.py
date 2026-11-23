@@ -41,22 +41,12 @@ data = st.session_state.data
 st.image("Screenshot_20261120_230914_com_whatsapp_ViewProfilePhoto.jpg", use_container_width=True)
 
 st.markdown("""
-<div style="text-align:center; padding:25px; background:linear-gradient(135deg, #0d3b1e 0%, #14532d 50%, #7f1d1d 100%); border-radius:20px; border:3px solid #22c55e;">
-    <div style="font-size:68px; font-weight:900; line-height:1.2; color:#ffffff; text-shadow:3px 3px 0px #16a34a, 6px 6px 0px #dc2626;">
-        باحثي الائتلاف
-    </div>
-    <div style="font-size:68px; font-weight:900; line-height:1.2; color:#ffffff; text-shadow:3px 3px 0px #dc2626, 6px 6px 0px #16a34a;">
-        السوداني
-    </div>
-    <div style="margin-top:15px; font-size:22px; font-weight:700; color:#ffffff; background:#dc2626; display:inline-block; padding:8px 25px; border-radius:50px; border:2px solid #22c55e;">
-        منتدى الباحثين السودانيين
-    </div>
-    <div style="margin-top:10px; font-size:18px; color:#ffffff;">
-        علم - بحث - وحدة
+<div style="text-align:center; padding:20px 10px; background:#14532d; border-radius:20px; border:3px solid #22c55e;">
+    <div style="font-size:32px; font-weight:900; color:#ffffff; white-space:nowrap; text-shadow:2px 2px 0px #dc2626;">
+        باحثي الائتلاف السوداني
     </div>
 </div>
 """, unsafe_allow_html=True)
-
 
 
 
