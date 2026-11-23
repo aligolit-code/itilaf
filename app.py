@@ -39,6 +39,13 @@ data = st.session_state.data
 
 # الغلاف - الشعار مستطيل زي ما هو
 st.image("Screenshot_20261120_230914_com_whatsapp_ViewProfilePhoto.jpg", use_container_width=True)
+
+st.markdown("""
+<div style="text-align: center;">
+<h1 style="font-size: 55px; font-weight: 900; line-height: 1.3; margin: 5px; background: linear-gradient(90deg, #1a237e, #0d47a1, #2e7d32); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-family: 'Cairo', 'Tajawal', sans-serif;">باحثي الائتلاف السوداني</h1>
+<p style="font-size: 20px; color: #666;">Sudanese Coalition for Education for All • SCEFA</p>
+</div>
+""", unsafe_allow_html=True)
 st.markdown("""
 <div style="
 
