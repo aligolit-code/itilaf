@@ -26,7 +26,7 @@ def load_data():
         "users": {
             "ali_admin": {"name": "علي", "email": "ali@itilaf.com", "specialty": "إدارة المنتدى", "bio": "مشرف عام", "pw": hash_pw("123456"), "role": "admin", "status": "approved"}
         },
-        "chats": [], "papers": []
+        "chats": [], "papers": [], "posts": []
     }
 
 def save_data(d):
@@ -99,7 +99,7 @@ if st.button("تسجيل خروج"):
     del st.session_state["user"]
     st.rerun()
 
-tab1, tab2, tab3 = st.tabs(["💬 غرفة النقاش الثابتة", "👥 الأعضاء", "📚 الأبحاث"])
+tab1, tab2, tab3, tab4 = st.tabs(["📝 المنتدى", "👤 صفحتي", "👥 الأعضاء", "📚 الأبحاث"])
 if me["role"] == "admin":
     tab4 = st.tabs(["✅ طلبات الانضمام"])[0]
     with tab4:
@@ -115,32 +115,61 @@ if me["role"] == "admin":
                 data["users"][k]["status"]="rejected"; save_data(data); st.rerun()
 
 with tab1:
-    st.markdown("### غرفة النقاش - كل الأعضاء سوا")
-    new_msg = st.text_area("اكتب رسالتك هنا...", key="msg")
-    if st.button("انشر رسالتي"):
-        if new_msg.strip():
-            data["chats"].append({"name": me["name"], "user": st.session_state["user"], "text": new_msg})
-            save_data(data); st.success("اتنشرت"); st.rerun()
-    st.markdown("---")
-    for m in reversed(data["chats"]):
-        st.info(f"{m['name']} : {m['text']}")
+    st.subheader("المنتدى - منشورات الأعضاء")
+    cats = ["بحوث ودراسات", "نقاش عام", "فرص ومنح", "أسئلة ومساعدة"]
+    cat = st.selectbox("اختار القسم", cats)
+    p_title = st.text_input("عنوان المنشور")
+    p_text = st.text_area("اكتب منشورك هنا...", key="post_text")
+    if st.button("انشر المنشور"):
+        if p_title.strip() and p_text.strip():
+            data["posts"].append({"id": len(data["posts"])+1, "title": p_title, "text": p_text, "cat": cat, "name": me["name"], "user": st.session_state["user"], "comments": []})
+            save_data(data); st.success("اتنشر"); st.rerun()
+        else:
+            st.warning("اكتب العنوان والنص")
 
-with tab2:
-    st.subheader("ملفات الأعضاء")
-    for k,v in data["users"].items():
-        if v["status"]=="approved":
-            with st.expander(f"{v['name']} - {v['specialty']}"):
-                st.write(f"**الاسم:** {v['name']}")
-                st.write(f"**التخصص:** {v['specialty']}")
-                st.write(f"**النبذة:** {v['bio']}")
-                st.write(f"**الإيميل:** {v['email']}")
     st.markdown("---")
-    st.subheader("تعديل ملفي")
+    f_cat = st.selectbox("اعرض قسم:", ["الكل"] + cats)
+    for p in reversed(data["posts"]):
+        if f_cat != "الكل" and p["cat"] != f_cat:
+            continue
+        with st.expander(f"[{p['cat']}] {p['title']} - بواسطة {p['name']}"):
+            st.write(p["text"])
+            # صاحب المنشور بس يقدر يمسحو
+            if p["user"] == st.session_state["user"] or me["role"] == "admin":
+                if st.button(f"حذف المنشور", key=f"delp_{p['id']}"):
+                    data["posts"] = [x for x in data["posts"] if x["id"] != p["id"]]
+                    save_data(data); st.rerun()
+            st.markdown("**التعليقات:**")
+            for c in p.get("comments", []):
+                st.info(f"{c['name']} : {c['text']}")
+                if c["user"] == st.session_state["user"]:
+                    if st.button(f"حذف تعليقي", key=f"delc_{p['id']}_{c['text'][:5]}"):
+                        p["comments"] = [x for x in p["comments"] if x != c]
+                        save_data(data); st.rerun()
+            new_c = st.text_input(f"اكتب تعليق...", key=f"c_{p['id']}")
+            if st.button(f"علق", key=f"btnc_{p['id']}"):
+                if new_c.strip():
+                    p.setdefault("comments", []).append({"name": me["name"], "user": st.session_state["user"], "text": new_c})
+                    save_data(data); st.rerun()
+with tab2:
+    st.subheader("صفحتي - اتحكم في ملفك براك")
+    me["name"] = st.text_input("اسمك الكامل", value=me["name"])
     me["specialty"] = st.text_input("تخصصي", value=me["specialty"])
     me["bio"] = st.text_area("نبذتي", value=me["bio"])
+    me["email"] = st.text_input("ايميلي", value=me["email"])
+    new_pw = st.text_input("كلمة سر جديدة (خليها فاضية لو ما داير تغيرها)", type="password")
     if st.button("حفظ ملفي"):
+        if new_pw.strip():
+            me["pw"] = hash_pw(new_pw)
         save_data(data); st.success("تم حفظ ملفك")
 
+    st.markdown("---")
+    st.subheader("منشوراتي أنا")
+    my_posts = [x for x in data["posts"] if x["user"] == st.session_state["user"]]
+    if not my_posts:
+        st.write("لسه ما نشرت أي منشور")
+    for p in reversed(my_posts):
+        st.write(f"**[{p['cat']}] {p['title']}** - {len(p.get('comments',[]))} تعليق")
 with tab3:
     st.subheader("الأبحاث")
     title = st.text_input("عنوان البحث")
