@@ -46,6 +46,7 @@ st.markdown("""
 <p style="font-size: 20px; color: #666;">Sudanese Coalition for Education for All • SCEFA</p>
 </div>
 """, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 st.markdown("""
 <div style="
 
