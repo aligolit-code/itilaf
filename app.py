@@ -39,8 +39,9 @@ data = st.session_state.data
 
 # الغلاف - الشعار مستطيل زي ما هو
 st.image("Screenshot_20261120_230914_com_whatsapp_ViewProfilePhoto.jpg", use_container_width=True)
-<div style="
 st.markdown("""
+<div style="
+
 
     text-align:center;
     font-size:42px;
