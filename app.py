@@ -38,7 +38,7 @@ if "data" not in st.session_state:
 data = st.session_state.data
 
 # الغلاف - الشعار مستطيل زي ما هو
-st.image("logo", use_container_width=True)
+
 
 st.markdown("""
 <div style="
