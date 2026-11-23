@@ -113,8 +113,36 @@ if me["role"] == "admin":
                 data["users"][k]["status"]="approved"; save_data(data); st.rerun()
             if c2.button(f"رفض {v['name']}", key=f"no_{k}"):
                 data["users"][k]["status"]="rejected"; save_data(data); st.rerun()
-
 with tab1:
+    # لو فاتح منشور معين - اظهر زر الرجوع
+    if "opened_post" in st.session_state and st.session_state["opened_post"] is not None:
+        pid = st.session_state["opened_post"]
+        p = next((x for x in data["posts"] if x["id"] == pid), None)
+        if st.button("⬅️ رجوع للمنتدى"):
+            st.session_state["opened_post"] = None
+            st.rerun()
+        if p:
+            st.subheader(f"[{p['cat']}] {p['title']}")
+            st.write(f"بواسطة: {p['name']}")
+            st.markdown("---")
+            st.write(p["text"])
+            st.markdown("---")
+            st.markdown("**التعليقات:**")
+            for c in p.get("comments", []):
+                st.info(f"{c['name']} : {c['text']}")
+            new_c = st.text_input("اكتب تعليق...", key=f"c_{p['id']}")
+            if st.button("علق"):
+                if new_c.strip():
+                    p.setdefault("comments", []).append({"name": me["name"], "user": st.session_state["user"], "text": new_c})
+                    save_data(data); st.rerun()
+            if p["user"] == st.session_state["user"] or me["role"] == "admin":
+                if st.button("حذف المنشور"):
+                    data["posts"] = [x for x in data["posts"] if x["id"] != p["id"]]
+                    st.session_state["opened_post"] = None
+                    save_data(data); st.rerun()
+        st.stop()
+
+    # لو ما فاتح منشور - اظهر قائمة المنتدى
     st.subheader("المنتدى - منشورات الأعضاء")
     cats = ["بحوث ودراسات", "نقاش عام", "فرص ومنح", "أسئلة ومساعدة"]
     cat = st.selectbox("اختار القسم", cats)
@@ -132,25 +160,10 @@ with tab1:
     for p in reversed(data["posts"]):
         if f_cat != "الكل" and p["cat"] != f_cat:
             continue
-        with st.expander(f"[{p['cat']}] {p['title']} - بواسطة {p['name']}"):
-            st.write(p["text"])
-            # صاحب المنشور بس يقدر يمسحو
-            if p["user"] == st.session_state["user"] or me["role"] == "admin":
-                if st.button(f"حذف المنشور", key=f"delp_{p['id']}"):
-                    data["posts"] = [x for x in data["posts"] if x["id"] != p["id"]]
-                    save_data(data); st.rerun()
-            st.markdown("**التعليقات:**")
-            for c in p.get("comments", []):
-                st.info(f"{c['name']} : {c['text']}")
-                if c["user"] == st.session_state["user"]:
-                    if st.button(f"حذف تعليقي", key=f"delc_{p['id']}_{c['text'][:5]}"):
-                        p["comments"] = [x for x in p["comments"] if x != c]
-                        save_data(data); st.rerun()
-            new_c = st.text_input(f"اكتب تعليق...", key=f"c_{p['id']}")
-            if st.button(f"علق", key=f"btnc_{p['id']}"):
-                if new_c.strip():
-                    p.setdefault("comments", []).append({"name": me["name"], "user": st.session_state["user"], "text": new_c})
-                    save_data(data); st.rerun()
+        st.info(f"[{p['cat']}] {p['title']} - بواسطة {p['name']} - {len(p.get('comments',[]))} تعليق")
+        if st.button(f"افتح المنشور", key=f"open_{p['id']}"):
+            st.session_state["opened_post"] = p["id"]
+            st.rerun()
 with tab2:
     st.subheader("صفحتي - اتحكم في ملفك براك")
     me["name"] = st.text_input("اسمك الكامل", value=me["name"])
