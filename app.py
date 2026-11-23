@@ -21,7 +21,6 @@ def load_data():
             with open(DATA_FILE, "r", encoding="utf-8") as f:
                 return json.load(f)
         except: pass
-    # أول مرة: نعمل مشرف رئيسي - غيّر كلمة السر دي
     return {
         "users": {
             "ali_admin": {"name": "علي", "email": "ali@itilaf.com", "specialty": "إدارة المنتدى", "bio": "مشرف عام", "pw": hash_pw("123456"), "role": "admin", "status": "approved"}
@@ -36,25 +35,19 @@ def save_data(d):
 if "data" not in st.session_state:
     st.session_state.data = load_data()
 data = st.session_state.data
+if "opened_post" not in st.session_state:
+    st.session_state["opened_post"] = None
 
-# الغلاف - الشعار مستطيل زي ما هو
 st.image("Screenshot_20261120_230914_com_whatsapp_ViewProfilePhoto.jpg", use_container_width=True)
-
 st.markdown("""
 <div style="text-align:center; padding:20px 10px; background:#14532d; border-radius:20px; border:3px solid #22c55e;">
-    <div style="font-size:32px; font-weight:900; color:#ffffff; white-space:nowrap; text-shadow:2px 2px 0px #dc2626;">
+    <div style="font-size:28px; font-weight:900; color:#ffffff; text-shadow:2px 2px 0px #dc2626;">
         باحثي الائتلاف السوداني
     </div>
 </div>
 """, unsafe_allow_html=True)
-
-
-
-
-
 st.markdown("---")
 
-# --- لو ما مسجل دخول ---
 if "user" not in st.session_state:
     t1, t2 = st.tabs(["دخول", "تسجيل جديد"])
     with t1:
@@ -92,17 +85,23 @@ if "user" not in st.session_state:
                 st.success("تم إرسال طلبك! انتظر موافقة المشرفين، وبعدها تقدر تدخل.")
     st.stop()
 
-# --- لو مسجل دخول ---
 me = data["users"][st.session_state["user"]]
 st.write(f"مرحبا **{me['name']}** | تخصصك: {me['specialty']} | دورك: {'مشرف' if me['role']=='admin' else 'عضو'}")
 if st.button("تسجيل خروج"):
     del st.session_state["user"]
     st.rerun()
 
+# زر الرجوع العام - بيظهر دايما فوق
+if st.session_state["opened_post"] is not None:
+    if st.button("⬅️ رجوع للمنتدى"):
+        st.session_state["opened_post"] = None
+        st.rerun()
+
 tab1, tab2, tab3, tab4 = st.tabs(["📝 المنتدى", "👤 صفحتي", "👥 الأعضاء", "📚 الأبحاث"])
+
 if me["role"] == "admin":
-    tab4 = st.tabs(["✅ طلبات الانضمام"])[0]
-    with tab4:
+    tab5 = st.tabs(["✅ طلبات الانضمام"])[0]
+    with tab5:
         st.subheader("طلبات جديدة")
         pending = {k:v for k,v in data["users"].items() if v["status"]=="pending"}
         if not pending: st.write("ما في طلبات جديدة")
@@ -113,18 +112,14 @@ if me["role"] == "admin":
                 data["users"][k]["status"]="approved"; save_data(data); st.rerun()
             if c2.button(f"رفض {v['name']}", key=f"no_{k}"):
                 data["users"][k]["status"]="rejected"; save_data(data); st.rerun()
+
 with tab1:
-    # لو فاتح منشور معين - اظهر زر الرجوع
-    if "opened_post" in st.session_state and st.session_state["opened_post"] is not None:
+    if st.session_state["opened_post"] is not None:
         pid = st.session_state["opened_post"]
         p = next((x for x in data["posts"] if x["id"] == pid), None)
-        if st.button("⬅️ رجوع للمنتدى"):
-            st.session_state["opened_post"] = None
-            st.rerun()
         if p:
             st.subheader(f"[{p['cat']}] {p['title']}")
             st.write(f"بواسطة: {p['name']}")
-            st.markdown("---")
             st.write(p["text"])
             st.markdown("---")
             st.markdown("**التعليقات:**")
@@ -140,30 +135,28 @@ with tab1:
                     data["posts"] = [x for x in data["posts"] if x["id"] != p["id"]]
                     st.session_state["opened_post"] = None
                     save_data(data); st.rerun()
-        st.stop()
+    else:
+        st.subheader("المنتدى - منشورات الأعضاء")
+        cats = ["بحوث ودراسات", "نقاش عام", "فرص ومنح", "أسئلة ومساعدة"]
+        cat = st.selectbox("اختار القسم", cats)
+        p_title = st.text_input("عنوان المنشور")
+        p_text = st.text_area("اكتب منشورك هنا...", key="post_text")
+        if st.button("انشر المنشور"):
+            if p_title.strip() and p_text.strip():
+                data["posts"].append({"id": len(data["posts"])+1, "title": p_title, "text": p_text, "cat": cat, "name": me["name"], "user": st.session_state["user"], "comments": []})
+                save_data(data); st.success("اتنشر"); st.rerun()
+            else:
+                st.warning("اكتب العنوان والنص")
+        st.markdown("---")
+        f_cat = st.selectbox("اعرض قسم:", ["الكل"] + cats)
+        for p in reversed(data["posts"]):
+            if f_cat != "الكل" and p["cat"] != f_cat:
+                continue
+            st.info(f"[{p['cat']}] {p['title']} - بواسطة {p['name']} - {len(p.get('comments',[]))} تعليق")
+            if st.button(f"افتح المنشور", key=f"open_{p['id']}"):
+                st.session_state["opened_post"] = p["id"]
+                st.rerun()
 
-    # لو ما فاتح منشور - اظهر قائمة المنتدى
-    st.subheader("المنتدى - منشورات الأعضاء")
-    cats = ["بحوث ودراسات", "نقاش عام", "فرص ومنح", "أسئلة ومساعدة"]
-    cat = st.selectbox("اختار القسم", cats)
-    p_title = st.text_input("عنوان المنشور")
-    p_text = st.text_area("اكتب منشورك هنا...", key="post_text")
-    if st.button("انشر المنشور"):
-        if p_title.strip() and p_text.strip():
-            data["posts"].append({"id": len(data["posts"])+1, "title": p_title, "text": p_text, "cat": cat, "name": me["name"], "user": st.session_state["user"], "comments": []})
-            save_data(data); st.success("اتنشر"); st.rerun()
-        else:
-            st.warning("اكتب العنوان والنص")
-
-    st.markdown("---")
-    f_cat = st.selectbox("اعرض قسم:", ["الكل"] + cats)
-    for p in reversed(data["posts"]):
-        if f_cat != "الكل" and p["cat"] != f_cat:
-            continue
-        st.info(f"[{p['cat']}] {p['title']} - بواسطة {p['name']} - {len(p.get('comments',[]))} تعليق")
-        if st.button(f"افتح المنشور", key=f"open_{p['id']}"):
-            st.session_state["opened_post"] = p["id"]
-            st.rerun()
 with tab2:
     st.subheader("صفحتي - اتحكم في ملفك براك")
     me["name"] = st.text_input("اسمك الكامل", value=me["name"])
@@ -175,7 +168,6 @@ with tab2:
         if new_pw.strip():
             me["pw"] = hash_pw(new_pw)
         save_data(data); st.success("تم حفظ ملفك")
-
     st.markdown("---")
     st.subheader("منشوراتي أنا")
     my_posts = [x for x in data["posts"] if x["user"] == st.session_state["user"]]
@@ -183,7 +175,18 @@ with tab2:
         st.write("لسه ما نشرت أي منشور")
     for p in reversed(my_posts):
         st.write(f"**[{p['cat']}] {p['title']}** - {len(p.get('comments',[]))} تعليق")
+
 with tab3:
+    st.subheader("ملفات الأعضاء")
+    for k,v in data["users"].items():
+        if v["status"]=="approved":
+            with st.expander(f"{v['name']} - {v['specialty']}"):
+                st.write(f"**الاسم:** {v['name']}")
+                st.write(f"**التخصص:** {v['specialty']}")
+                st.write(f"**النبذة:** {v['bio']}")
+                st.write(f"**الإيميل:** {v['email']}")
+
+with tab4:
     st.subheader("الأبحاث")
     title = st.text_input("عنوان البحث")
     up = st.file_uploader("ارفع ملف PDF", type=["pdf"])
