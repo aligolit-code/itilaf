@@ -37,7 +37,36 @@ if "data" not in st.session_state:
     st.session_state.data = load_data()
 data = st.session_state.data
 
-st.markdown('<div class="main-title">منتدى باحثين الائتلاف السوداني</div>', unsafe_allow_html=True)
+# الغلاف - الشعار مستطيل زي ما هو
+st.image("logo.png", use_container_width=True)
+
+st.markdown("""
+<div style="
+    text-align:center;
+    font-size:42px;
+    font-weight:900;
+    line-height:1.3;
+    margin-top:5px;
+    margin-bottom:5px;
+    background: linear-gradient(90deg, #1a237e, #0d47a1, #2e7d32);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-family: 'Cairo', 'Tajawal', sans-serif;
+    text-shadow: 0px 2px 10px rgba(0,0,0,0.05);
+">
+    ✨ منتدى باحثي الائتلاف السوداني ✨
+</div>
+<div style="
+    text-align:center;
+    font-size:18px;
+    color:#666;
+    margin-bottom:15px;
+    letter-spacing:1px;
+">
+    Sudanese Coalition for Education for All • SCEFA
+</div>
+""", unsafe_allow_html=True)
+st.markdown("---")
 
 # --- لو ما مسجل دخول ---
 if "user" not in st.session_state:
