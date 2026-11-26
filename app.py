@@ -106,11 +106,19 @@ def forum():
             data["posts"].append({"user": session["user"], "text": txt, "time": datetime.now().strftime("%Y-%m-%d %H:%M")})
             save(data)
         return redirect("/forum")
-    out = "<html lang='ar' dir='rtl'><body style='background:#0f1f1a;color:#fff;text-align:center;font-family:sans-serif'><h2>غرفة النقاش العامة</h2><a href='/home' style='color:#fff'>رجوع للرئيسية</a><br><br>"
-    out += "<form method='post'><input name='text' placeholder='اكتب رسالتك هنا...' required style='width:80%;padding:12px;border-radius:10px'><br><br><button style='background:#16a34a;color:#fff;padding:12px 25px;border-radius:10px'>ارسال</button></form><hr>"
+    out = """<html lang='ar' dir='rtl'><head><meta name='viewport' content='width=device-width, initial-scale=1.0'><style>
+    body{margin:0;background:#0f1f1a;color:#fff;font-family:sans-serif;text-align:center}
+    .box{max-width:500px;margin:auto;padding:20px}
+    h2{font-size:28px} input{width:100%;padding:18px;border-radius:14px;font-size:20px;box-sizing:border-box}
+    .btn{background:#16a34a;color:#fff;padding:16px 30px;border-radius:12px;font-size:20px;font-weight:bold;border:none;margin-top:12px}
+    .msg{background:#fff;color:#222;margin:12px 0;padding:18px;border-radius:16px;text-align:right;font-size:21px;line-height:1.6}
+    .msg b{font-size:20px} .msg small{font-size:15px;color:#555}
+    a{color:#fff;font-size:18px}
+    </style></head><body><div class='box'><h2>غرفة النقاش العامة</h2><a href='/home'>رجوع للرئيسية</a><br><br>
+    <form method='post'><input name='text' placeholder='اكتب رسالتك هنا...' required><br><button class='btn'>ارسال</button></form><hr>"""
     for p in reversed(data["posts"]):
-        out += f"<div style='background:#fff;color:#222;margin:10px;padding:12px;border-radius:12px;text-align:right'><b><a href='/member/{p['user']}'>{p['user']}</a></b> <small>{p['time']}</small><br>{p['text']}</div>"
-    out += "</body></html>"
+        out += f"<div class='msg'><b><a href='/member/{p['user']}' style='color:#16a34a'>{p['user']}</a></b> <small>{p['time']}</small><br>{p['text']}</div>"
+    out += "</div></body></html>"
     return out
 
 @app.route("/member/<username>")
