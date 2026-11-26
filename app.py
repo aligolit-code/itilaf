@@ -67,22 +67,33 @@ def register():
         return redirect("/?ok=تم التسجيل بنجاح")
     return """<html lang="ar" dir="rtl"><head><meta name="viewport" content="width=device-width, initial-scale=1.0"></head><body style="background:#0f1f1a;color:#fff;text-align:center"><h2>تسجيل عضو جديد</h2><form method="post"><input name="username" placeholder="اسم المستخدم" required><br><br><input name="name" placeholder="الاسم الكامل" required><br><br><input type="password" name="password" placeholder="كلمة السر" required><br><br><button>تسجيل</button></form><a href="/">رجوع</a></body></html>"""
 
+
 @app.route("/home")
 def home():
     if "user" not in session: return redirect("/")
     data = load()
     me = next((x for x in data["users"] if x["username"] == session["user"]), {"name": session["user"]})
-    out = f"<html lang='ar' dir='rtl'><body style='background:#0f1f1a;color:#fff;text-align:center;font-family:sans-serif'><h2>اهلا {me['name']}</h2>"
-    out += "<p><a href='/forum' style='color:#fff;background:#16a34a;padding:12px 20px;border-radius:10px;text-decoration:none'>💬 غرفة النقاش العامة</a></p>"
-    out += "<h3>الأعضاء</h3>"
+    out = f"""<html lang='ar' dir='rtl'><head><meta name='viewport' content='width=device-width, initial-scale=1.0'><style>
+    body{{margin:0;background:#0f1f1a;color:#fff;font-family:sans-serif;text-align:center}}
+    .box{{max-width:500px;margin:auto;padding:20px}}
+    .card{{background:#fff;color:#222;border-radius:20px;padding:22px;margin-top:15px;text-align:right}}
+    .btn{{display:block;background:#16a34a;color:#fff;padding:18px;border-radius:14px;text-decoration:none;font-size:22px;font-weight:bold;text-align:center}}
+    .member{{background:#1e3a2f;padding:16px;border-radius:14px;margin:10px 0;font-size:20px}}
+    .member a{{color:#fff;text-decoration:none;font-size:20px}}
+    h2{{font-size:28px}} h3{{font-size:22px}}
+    </style></head><body><div class='box'><h2>اهلا {me['name']} 👋</h2>
+    <a href='/forum' class='btn'>💬 غرفة النقاش العامة</a>
+    <div class='card'><h3>👥 الأعضاء</h3>"""
     for u in data["users"]:
-        out += f"<div><a href='/member/{u['username']}' style='color:#fff'>{u['name']} @{u['username']}</a></div>"
+        out += f"<div class='member'><a href='/member/{u['username']}'>{u['name']} @{u['username']}</a></div>"
+    out += "</div>"
     if session.get("user") in ADMINS:
-        out += "<h3>طلبات قيد الانتظار</h3>"
+        out += "<div class='card'><h3>طلبات قيد الانتظار</h3>"
         for p in data["users"]:
             if p.get("status") == "pending":
                 out += f"<div>{p['name']} @{p['username']} <a href='/approve/{p['username']}'>موافقة</a> | <a href='/reject/{p['username']}'>رفض</a></div>"
-    out += "<br><br><a href='/logout' style='color:#fff'>خروج</a></body></html>"
+        out += "</div>"
+    out += "<br><a href='/logout' style='color:#fff;font-size:18px'>خروج</a></div></body></html>"
     return out
 
 @app.route("/forum", methods=["GET", "POST"])
