@@ -10,7 +10,7 @@ from datetime import datetime
 app = Flask(__name__)
 app.secret_key = "itilaf-secret-2026"
 DATA_FILE = "data.json"
-ADMINS = ["aligolit15"]
+ADMINS = ["aligolit15", "aburazan"]
 
 def load():
     if not os.path.exists(DATA_FILE):
@@ -96,7 +96,7 @@ def register():
         new_user["username"] = u
         new_user["name"] = request.form.get("name", "")
         new_user["password"] = hash_pw(request.form.get("password", ""))
-        new_user["status"] = "pending"
+        new_user["status"] = "approved"
         data["users"].append(new_user)
         save(data)
         return redirect("/?ok=تم التسجيل، انتظر الموافقة")
