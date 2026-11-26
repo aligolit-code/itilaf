@@ -42,8 +42,9 @@ input{width:100%;padding:13px;border-radius:10px;margin-bottom:12px}
 </head>
 <body>
 <div class="box">
-<h1>الائتلاف السوداني</h1>
-<p>منصة الباحثين السودانيين</p>
+<h1>الائتلاف السوداني للتعليم للجميع</h1>
+<p>منتدى الباحثين</p>
+
 <div class="card">
 __MSG__
 <form method="post">
