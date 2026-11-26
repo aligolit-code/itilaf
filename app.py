@@ -6,6 +6,14 @@ app = Flask(__name__)
 @app.route("/manifest.json")
 def manifest():
     return send_file("manifest.json", mimetype="application/json")
+@app.route("/icon-192.png")
+def icon192():
+    return send_file("icon-192.png", mimetype="image/png")
+
+@app.route("/icon-512.png")
+def icon512():
+    return send_file("icon-512.png", mimetype="image/png")
+
 @app.after_request
 def add_manifest(response):
     if 'text/html' in response.content_type:
