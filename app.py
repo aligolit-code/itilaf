@@ -155,6 +155,17 @@ def approve(username):
 
 @app.route("/reject/<username>")
 def reject(username):
+    if session.get("user") not in ADMINS:
+        return "ما عندك صلاحية"
+    data = load()
+    new_users = []
+    for x in data["users"]:
+        if x["username"] != username:
+            new_users.append(x)
+    data["users"] = new_users
+    save(data)
+    return redirect("/home")
+def reject(username):
     if session.get("user") not in ADMINS: return "ما عندك صلاحية"
     data = load()
     data["users"] = [u for u in data["users"] if u["
