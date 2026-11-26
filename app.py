@@ -6,6 +6,13 @@ app = Flask(__name__)
 @app.route("/manifest.json")
 def manifest():
     return send_file("manifest.json", mimetype="application/json")
+@app.after_request
+def add_manifest(response):
+    if 'text/html' in response.content_type:
+        data = response.get_data(as_text=True).replace('</head>', "<link rel='manifest' href='/manifest.json'></head>", 1)
+        response.set_data(data)
+    return response
+
 app.secret_key = "itilaf-secret-2026"
 DATA_FILE = "data.json"
 ADMINS = ["aligolit15", "aburazan"]
