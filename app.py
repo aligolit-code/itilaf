@@ -119,17 +119,26 @@ def register():
     return render_template_string(REGISTER_HTML)
 
 @app.route("/home")
+@app.route("/home")
 def home():
-    if "user" not in session: return redirect("/")
+    if "user" not in session:
+        return redirect("/")
     data = load()
-    me = next((x for x in data["users"] if x["username"]==session["user"]), None)
-    is_admin = session["user"] in ADMINS
-    pending = [x for x in data["users"] if x.get("status")=="pending"] if is_admin else []
-    html = "<h2 style='text-align:center;font-family:Tahoma'>أهلا "+me["name"]+"</h2>"
+    me = None
+    for x in data["users"]:
+        if x["username"] == session["user"]:
+            me = x
+    is_admin = session.get("user") in ADMINS
+    pending = []
     if is_admin:
-        html += "<div style='max-width:500px;margin:auto;font-family:Tahoma'><h3>طلبات قيد الانتظار ("+str(len(pending))+")</h3>"
+        for x in data["users"]:
+            if x.get("status") == "pending":
+                pending.append(x)
+    html = "<h2 style='text-align:center;font-family:Tahoma'>اهلا " + me["name"] + "</h2>"
+    if is_admin:
+        html += "<div style='max-width:500px;margin:auto;font-family:Tahoma'><h3>طلبات قيد الانتظار (" + str(len(pending)) + ")</h3>"
         for p in pending:
-            html += f"<div style='background:#fff;color:#000;padding:12px;border-radius:10px;margin:8px 0'>{p['name']} - @{p['username']} <a href='/approve/{p['username']}'>✅ موافقة</a> | <a href='/reject/{p['username']}'>❌ رفض</a></div>"
+            html += "<div style='background:#fff;color:#000;padding:12px;border-radius:10px;margin:8px 0'>" + p["name"] + " - @" + p["username"] + " <a href='/approve/" + p["username"] + "'>موافقة</a> | <a href='/reject/" + p["username"] + "'>رفض</a></div>"
         html += "</div>"
     html += "<div style='text-align:center'><a href='/logout'>خروج</a></div>"
     return html
