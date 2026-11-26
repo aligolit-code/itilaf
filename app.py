@@ -1,5 +1,10 @@
-from flask import Flask, render_template_string, request, redirect, session
-import json, os, hashlib
+from flask import Flask
+from flask import request
+from flask import redirect
+from flask import session
+import json
+import os
+import hashlib
 from datetime import datetime
 
 app = Flask(__name__)
@@ -9,7 +14,7 @@ ADMINS = ["aligolit15"]
 
 def load():
     if not os.path.exists(DATA_FILE):
-        return {"users": [], "posts": []}
+        return {"users": []}
     with open(DATA_FILE, encoding="utf-8") as f:
         return json.load(f)
 
@@ -20,53 +25,95 @@ def save(data):
 def hash_pw(p):
     return hashlib.sha256(p.encode()).hexdigest()
 
-LOGIN_HTML = """<html lang="ar" dir="rtl"><head><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>الائتلاف</title><style>*{box-sizing:border-box;font-family:Tahoma}body{margin:0;background:#0f1f1a;color:#fff;display:flex;justify-content:center}.box{width:100%;max-width:420px;padding:20px;text-align:center}h1{font-size:22px}.sub{color:#b7c9c0;font-size:14px;margin-bottom:20px}.card{background:#fff;color:#222;border-radius:18px;padding:20px;text-align:right}input{width:100%;padding:13px;border:1px solid #ccc;border-radius:10px;font-size:16px;margin-top:6px;margin-bottom:12px}.btn{width:100%;background:#16a34a;color:#fff;border:none;padding:14px;border-radius:12px;font-size:17px;font-weight:bold;cursor:pointer}.msg{background:#ffe4e4;color:#b91c1c;padding:10px;border-radius:10px;margin-bottom:10px;text-align:center}.ok{background:#dcfce7;color:#166534;padding:10px;border-radius:10px;margin-bottom:10px;text-align:center}a{color:#16a34a;display:block;text-align:center;margin-top:15px;text-decoration:none;font-weight:bold}</style></head><body><div class="box"><h1>الائتلاف السوداني</h1><div class="sub">منصة الباحثين السودانيين</div><div class="card">{MSG}<form method="post"><label>اسم المستخدم</label><input name="username" required><label>كلمة السر</label><input type="password" name="password" required><button class="btn">دخول</button></form><a href="/register">ما عندك حساب؟ سجل جديد</a></div></div></body></html>"""
+LOGIN_PAGE = """
+<html lang="ar" dir="rtl">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>الائتلاف</title>
+<style>
+body{margin:0;background:#0f1f1a;color:#fff}
+.box{max-width:420px;margin:auto;padding:20px;text-align:center}
+.card{background:#fff;color:#222;border-radius:18px;padding:20px}
+input{width:100%;padding:13px;border-radius:10px;margin-bottom:12px}
+.btn{width:100%;background:#16a34a;color:#fff;padding:14px;border-radius:12px}
+.msg{background:#ffe4e4;padding:10px;border-radius:10px}
+.ok{background:#dcfce7;padding:10px;border-radius:10px}
+</style>
+</head>
+<body>
+<div class="box">
+<h1>الائتلاف السوداني</h1>
+<p>منصة الباحثين السودانيين</p>
+<div class="card">
+__MSG__
+<form method="post">
+<input name="username" placeholder="اسم المستخدم" required>
+<input type="password" name="password" placeholder="كلمة السر" required>
+<button class="btn">دخول</button>
+</form>
+<a href="/register">ما عندك حساب؟ سجل جديد</a>
+</div>
+</div>
+</body>
+</html>
+"""
 
-@app.route("/", methods=["GET","POST"])
+@app.route("/", methods=["GET", "POST"])
 def login():
     msg = ""
     if request.method == "POST":
         data = load()
-        u = request.form.get("username","").strip()
-        p = hash_pw(request.form.get("password",""))
+        u = request.form.get("username", "").strip()
+        p = hash_pw(request.form.get("password", ""))
         found = None
         for x in data["users"]:
-            if x["username"] == u and x["password"] == p:
-                found = x
+            if x["username"] == u:
+                if x["password"] == p:
+                    found = x
         if found is None:
-            msg = "<div class='msg'>اسم المستخدم او كلمة السر غلط</div>"
+            msg = "<div class='msg'>غلط في الاسم او كلمة السر</div>"
         elif found.get("status") != "approved":
             msg = "<div class='msg'>حسابك لسه قيد المراجعة</div>"
         else:
             session["user"] = u
             return redirect("/home")
-    ok = request.args.get("ok","")
+    ok = request.args.get("ok", "")
     if ok:
         msg = "<div class='ok'>" + ok + "</div>" + msg
-    html = LOGIN_HTML.replace("{MSG}", msg)
-    return html
+    page = LOGIN_PAGE.replace("__MSG__", msg)
+    return page
 
-@app.route("/register", methods=["GET","POST"])
+@app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
         data = load()
-        u = request.form.get("username","").strip()
-        exists = False
+        u = request.form.get("username", "").strip()
         for x in data["users"]:
             if x["username"] == u:
-                exists = True
-        if exists:
-            return "الاسم ده مسجل قبل كده <a href='/register'>رجوع</a>"
+                return "الاسم مسجل قبل كده"
         new_user = {}
         new_user["username"] = u
-        new_user["name"] = request.form.get("name","")
-        new_user["password"] = hash_pw(request.form.get("password",""))
+        new_user["name"] = request.form.get("name", "")
+        new_user["password"] = hash_pw(request.form.get("password", ""))
         new_user["status"] = "pending"
-        new_user["created"] = datetime.now().strftime("%Y-%m-%d %H:%M")
         data["users"].append(new_user)
         save(data)
-        return redirect("/?ok=تم التسجيل بنجاح، انتظر الموافقة")
-    return """<html lang="ar" dir="rtl"><head><meta name="viewport" content="width=device-width, initial-scale=1.0"><style>*{box-sizing:border-box;font-family:Tahoma}body{margin:0;background:#0f1f1a;color:#fff;display:flex;justify-content:center}.box{width:100%;max-width:420px;padding:20px}.card{background:#fff;color:#222;border-radius:18px;padding:20px}input{width:100%;padding:13px;border:1px solid #ccc;border-radius:10px;margin-bottom:10px}.btn{width:100%;background:#16a34a;color:#fff;border:none;padding:14px;border-radius:12px;font-weight:bold}a{color:#16a34a;display:block;text-align:center;margin-top:12px;text-decoration:none;font-weight:bold}</style></head><body><div class="box"><h2 style="text-align:center">تسجيل عضو جديد</h2><div class="card"><form method="post"><input name="username" placeholder="اسم المستخدم" required><input name="name" placeholder="الاسم الكامل" required><input type="password" name="password" placeholder="كلمة السر" required><button class="btn">تسجيل</button></form><a href="/">رجوع للدخول</a></div></div></body></html>"""
+        return redirect("/?ok=تم التسجيل، انتظر الموافقة")
+    return """
+<html lang="ar" dir="rtl">
+<head><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="background:#0f1f1a;color:#fff;text-align:center">
+<h2>تسجيل عضو جديد</h2>
+<form method="post">
+<input name="username" placeholder="اسم المستخدم" required><br><br>
+<input name="name" placeholder="الاسم الكامل" required><br><br>
+<input type="password" name="password" placeholder="كلمة السر" required><br><br>
+<button>تسجيل</button>
+</form>
+<a href="/">رجوع</a>
+</body>
+</html>
+"""
 
 @app.route("/home")
 def home():
@@ -77,5 +124,51 @@ def home():
     for x in data["users"]:
         if x["username"] == session["user"]:
             me = x
-    is_admin = session.get("user") in ADMINS
-    html = "<h2 style='text-align:center;font-family:Tahoma'>اهلا
+    out = "<h2>اهلا " + me["name"] + "</h2>"
+    if session.get("user") in ADMINS:
+        out = out + "<h3>طلبات قيد الانتظار</h3>"
+        for p in data["users"]:
+            if p.get("status") == "pending":
+                out = out + "<div>"
+                out = out + p["name"]
+                out = out + " @"
+                out = out + p["username"]
+                out = out + " <a href='/approve/"
+                out = out + p["username"]
+                out = out + "'>موافقة</a> | <a href='/reject/"
+                out = out + p["username"]
+                out = out + "'>رفض</a></div>"
+    out = out + "<br><a href='/logout'>خروج</a>"
+    return out
+
+@app.route("/approve/<username>")
+def approve(username):
+    if session.get("user") not in ADMINS:
+        return "ما عندك صلاحية"
+    data = load()
+    for u in data["users"]:
+        if u["username"] == username:
+            u["status"] = "approved"
+    save(data)
+    return redirect("/home")
+
+@app.route("/reject/<username>")
+def reject(username):
+    if session.get("user") not in ADMINS:
+        return "ما عندك صلاحية"
+    data = load()
+    new_users = []
+    for x in data["users"]:
+        if x["username"] != username:
+            new_users.append(x)
+    data["users"] = new_users
+    save(data)
+    return redirect("/home")
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect("/")
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=10000)
