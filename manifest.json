@@ -1,0 +1,15 @@
+{
+  "name": "الائتلاف السوداني للتعليم للجميع",
+  "short_name": "الائتلاف",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f1f1a",
+  "theme_color": "#0f1f1a",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3135/3135755.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
