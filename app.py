@@ -99,7 +99,7 @@ def register():
         new_user["status"] = "approved"
         data["users"].append(new_user)
         save(data)
-        return redirect("/?ok=تم التسجيل، انتظر الموافقة")
+        return redirect("/?ok=تم التسجيل بنجاح")
     return """
 <html lang="ar" dir="rtl">
 <head><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
