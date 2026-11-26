@@ -1,8 +1,11 @@
-from flask import Flask, request, redirect, session
+from flask import Flask, request, redirect, session, send_file
 import json, os, hashlib
 from datetime import datetime
 
 app = Flask(__name__)
+@app.route("/manifest.json")
+def manifest():
+    return send_file("manifest.json", mimetype="application/json")
 app.secret_key = "itilaf-secret-2026"
 DATA_FILE = "data.json"
 ADMINS = ["aligolit15", "aburazan"]
