@@ -93,4 +93,53 @@ def home():
     for u in approved_users:
         html += '• ' + u['name'] + ' @' + u['username'] + '<br>'
     html += '</div>'
-    html += '
+    html += '<div class="card chat"><b>غرفة النقاش</b><hr>'
+    if len(messages) == 0:
+        html += '<p style="color:#888;text-align:center">لسه ما في رسائل، كن أول زول يكتب</p>'
+    for m in messages[-100:]:
+        html += '<div class="msg"><b>' + m.get('name', '') + ':</b> ' + m.get('text', '') + '<br><small>' + m.get('time', '') + '</small></div>'
+    html += '</div><a class="logout" href="/logout">خروج</a></div>'
+    html += '<form class="sendbar" method="post" action="/send"><input name="text" placeholder="اكتب رسالتك هنا..." required><button>إرسال</button></form></body></html>'
+    return html
+@app.route('/send', methods=['POST'])
+def send():
+    if 'user' not in session:
+        return redirect('/')
+    data = load()
+    me = None
+    for x in data['users']:
+        if x['username'] == session['user']:
+            me = x
+    text = request.form.get('text', '').strip()
+    if text and me:
+        data['messages'].append({'name': me['name'], 'username': me['username'], 'text': text, 'time': datetime.now().strftime('%Y-%m-%d %H:%M')})
+        save(data)
+    return redirect('/home')
+@app.route('/approve/<username>')
+def approve(username):
+    if session.get('user') not in ADMINS:
+        return 'ما عندك صلاحية'
+    data = load()
+    for u in data['users']:
+        if u['username'] == username:
+            u['status'] = 'approved'
+    save(data)
+    return redirect('/home')
+@app.route('/reject/<username>')
+def reject(username):
+    if session.get('user') not in ADMINS:
+        return 'ما عندك صلاحية'
+    data = load()
+    new_users = []
+    for u in data['users']:
+        if u['username'] != username:
+            new_users.append(u)
+    data['users'] = new_users
+    save(data)
+    return redirect('/home')
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect('/')
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=10000)
