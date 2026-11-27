@@ -3,13 +3,13 @@ import json, os, hashlib
 from datetime import datetime
 
 app = Flask(__name__)
+
 @app.route("/manifest.json")
 def manifest():
     return send_file("manifest.json", mimetype="application/json")
 @app.route("/icon-192.png")
 def icon192():
     return send_file("icon-192.png", mimetype="image/png")
-
 @app.route("/icon-512.png")
 def icon512():
     return send_file("icon-512.png", mimetype="image/png")
@@ -21,11 +21,51 @@ def add_manifest(response):
         response.set_data(data)
     return response
 
-app.secret_key = "itilaf-secret-2026"
-DATA_FILE = "data.json"
+app.secret_key = os.environ.get("SECRET_KEY", "itilaf-secret-2026")
+DATA_FILE = os.environ.get("DATA_FILE", "data.json")
+DATABASE_URL = os.environ.get("DATABASE_URL", "")
 ADMINS = ["aligolit15", "aburazan"]
 
+# ---------- قاعدة البيانات الثابتة ----------
+def _pg_conn():
+    import psycopg2
+    url = DATABASE_URL
+    # Render بيدي postgres:// ولازم تبقى postgresql://
+    if url.startswith("postgres://"):
+        url = url.replace("postgres://", "postgresql://", 1)
+    return psycopg2.connect(url)
+
+def _pg_init():
+    try:
+        conn = _pg_conn()
+        cur = conn.cursor()
+        cur.execute("CREATE TABLE IF NOT EXISTS users (username TEXT PRIMARY KEY, name TEXT, password TEXT, status TEXT)")
+        cur.execute("CREATE TABLE IF NOT EXISTS posts (id SERIAL PRIMARY KEY, username TEXT, text TEXT, time TEXT)")
+        conn.commit()
+        cur.close(); conn.close()
+    except Exception as e:
+        print("PG init error:", e)
+
+def _use_pg():
+    return bool(DATABASE_URL)
+
+if _use_pg():
+    _pg_init()
+
 def load():
+    if _use_pg():
+        try:
+            conn = _pg_conn()
+            cur = conn.cursor()
+            cur.execute("SELECT username, name, password, status FROM users")
+            users = [{"username": r[0], "name": r[1], "password": r[2], "status": r[3]} for r in cur.fetchall()]
+            cur.execute("SELECT username, text, time FROM posts ORDER BY id ASC")
+            posts = [{"user": r[0], "text": r[1], "time": r[2]} for r in cur.fetchall()]
+            cur.close(); conn.close()
+            return {"users": users, "posts": posts}
+        except Exception as e:
+            print("PG load error:", e)
+            return {"users": [], "posts": []}
     if not os.path.exists(DATA_FILE):
         return {"users": [], "posts": []}
     with open(DATA_FILE, encoding="utf-8") as f:
@@ -34,6 +74,24 @@ def load():
         return d
 
 def save(data):
+    if _use_pg():
+        try:
+            conn = _pg_conn()
+            cur = conn.cursor()
+            cur.execute("DELETE FROM users")
+            for u in data["users"]:
+                cur.execute("INSERT INTO users (username, name, password, status) VALUES (%s,%s,%s,%s) ON CONFLICT (username) DO UPDATE SET name=EXCLUDED.name, password=EXCLUDED.password, status=EXCLUDED.status",
+                            (u["username"], u.get("name",""), u.get("password",""), u.get("status","approved")))
+            cur.execute("DELETE FROM posts")
+            for p in data["posts"]:
+                cur.execute("INSERT INTO posts (username, text, time) VALUES (%s,%s,%s)",
+                            (p["user"], p["text"], p["time"]))
+            conn.commit()
+            cur.close(); conn.close()
+            return
+        except Exception as e:
+            print("PG save error:", e)
+            return
     with open(DATA_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
@@ -85,7 +143,6 @@ def register():
         return redirect("/?ok=تم التسجيل بنجاح")
     return """<html lang="ar" dir="rtl"><head><meta name="viewport" content="width=device-width, initial-scale=1.0"></head><body style="background:#0f1f1a;color:#fff;text-align:center"><h2>تسجيل عضو جديد</h2><form method="post"><input name="username" placeholder="اسم المستخدم" required><br><br><input name="name" placeholder="الاسم الكامل" required><br><br><input type="password" name="password" placeholder="كلمة السر" required><br><br><button>تسجيل</button></form><a href="/">رجوع</a></body></html>"""
 
-
 @app.route("/home")
 def home():
     if "user" not in session: return redirect("/")
@@ -100,77 +157,4 @@ def home():
     .member a{{color:#fff;text-decoration:none;font-size:20px}}
     h2{{font-size:28px}} h3{{font-size:22px}}
     </style></head><body><div class='box'><h2>اهلا {me['name']} 👋</h2>
-    <a href='/forum' class='btn'>💬 غرفة النقاش العامة</a>
-    <div class='card'><h3>👥 الأعضاء</h3>"""
-    for u in data["users"]:
-        out += f"<div class='member'><a href='/member/{u['username']}'>{u['name']} @{u['username']}</a></div>"
-    out += "</div>"
-    if session.get("user") in ADMINS:
-        out += "<div class='card'><h3>طلبات قيد الانتظار</h3>"
-        for p in data["users"]:
-            if p.get("status") == "pending":
-                out += f"<div>{p['name']} @{p['username']} <a href='/approve/{p['username']}'>موافقة</a> | <a href='/reject/{p['username']}'>رفض</a></div>"
-        out += "</div>"
-    out += "<br><a href='/logout' style='color:#fff;font-size:18px'>خروج</a></div></body></html>"
-    return out
-
-@app.route("/forum", methods=["GET", "POST"])
-def forum():
-    if "user" not in session: return redirect("/")
-    data = load()
-    if request.method == "POST":
-        txt = request.form.get("text", "").strip()
-        if txt:
-            data["posts"].append({"user": session["user"], "text": txt, "time": datetime.now().strftime("%Y-%m-%d %H:%M")})
-            save(data)
-        return redirect("/forum")
-    out = """<html lang='ar' dir='rtl'><head><meta name='viewport' content='width=device-width, initial-scale=1.0'><style>
-    body{margin:0;background:#0f1f1a;color:#fff;font-family:sans-serif;text-align:center}
-    .box{max-width:500px;margin:auto;padding:20px}
-    h2{font-size:28px} input{width:100%;padding:18px;border-radius:14px;font-size:20px;box-sizing:border-box}
-    .btn{background:#16a34a;color:#fff;padding:16px 30px;border-radius:12px;font-size:20px;font-weight:bold;border:none;margin-top:12px}
-    .msg{background:#fff;color:#222;margin:12px 0;padding:18px;border-radius:16px;text-align:right;font-size:21px;line-height:1.6}
-    .msg b{font-size:20px} .msg small{font-size:15px;color:#555}
-    a{color:#fff;font-size:18px}
-    </style></head><body><div class='box'><h2>غرفة النقاش العامة</h2><a href='/home'>رجوع للرئيسية</a><br><br>
-    <form method='post'><input name='text' placeholder='اكتب رسالتك هنا...' required><br><button class='btn'>ارسال</button></form><hr>"""
-    for p in reversed(data["posts"]):
-        out += f"<div class='msg'><b><a href='/member/{p['user']}' style='color:#16a34a'>{p['user']}</a></b> <small>{p['time']}</small><br>{p['text']}</div>"
-    out += "</div></body></html>"
-    return out
-
-@app.route("/member/<username>")
-def member(username):
-    if "user" not in session: return redirect("/")
-    data = load()
-    u = next((x for x in data["users"] if x["username"] == username), None)
-    if not u: return "العضو غير موجود"
-    out = f"<html lang='ar' dir='rtl'><body style='background:#0f1f1a;color:#fff;text-align:center;font-family:sans-serif'><h2>{u['name']}</h2><p>@{u['username']}</p><a href='/home' style='color:#fff'>رجوع</a><h3>منشوراتو</h3>"
-    for p in reversed([x for x in data["posts"] if x["user"] == username]):
-        out += f"<div style='background:#fff;color:#222;margin:10px;padding:12px;border-radius:12px'>{p['text']}<br><small>{p['time']}</small></div>"
-    out += "</body></html>"
-    return out
-
-@app.route("/approve/<username>")
-def approve(username):
-    if session.get("user") not in ADMINS: return "ما عندك صلاحية"
-    data = load()
-    for u in data["users"]:
-        if u["username"] == username: u["status"] = "approved"
-    save(data)
-    return redirect("/home")
-
-@app.route("/reject/<username>")
-def reject(username):
-    if session.get("user") not in ADMINS: return "ما عندك صلاحية"
-    data["users"] = [x for x in load()["users"] if x["username"] != username]
-    save(data)
-    return redirect("/home")
-
-@app.route("/logout")
-def logout():
-    session.clear()
-    return redirect("/")
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)
+    <a href='/forum' class='btn'>💬
