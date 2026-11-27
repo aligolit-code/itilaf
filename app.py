@@ -148,7 +148,7 @@ def home():
     if "user" not in session: return redirect("/")
     data = load()
     me = next((x for x in data["users"] if x["username"] == session["user"]), {"name": session["user"]})
-    out = f"""<html lang='ar' dir='rtl'><head><meta name='viewport' content='width=device-width, initial-scale=1.0'><style>
+    out = """<html lang='ar' dir='rtl'><head><meta name='viewport' content='width=device-width, initial-scale=1.0'><style>
     body{{margin:0;background:#0f1f1a;color:#fff;font-family:sans-serif;text-align:center}}
     .box{{max-width:500px;margin:auto;padding:20px}}
     .card{{background:#fff;color:#222;border-radius:20px;padding:22px;margin-top:15px;text-align:right}}
@@ -158,3 +158,5 @@ def home():
     h2{{font-size:28px}} h3{{font-size:22px}}
     </style></head><body><div class='box'><h2>اهلا {me['name']} 👋</h2>
     <a href='/forum' class='btn'>💬
+"""
+    return out
