@@ -3,7 +3,7 @@ import json, os, hashlib
 from datetime import datetime
 app = Flask(__name__)
 app.secret_key = 'itilaf-secret-2026'
-DATA_FILE = 'data.json'
+DATA_FILE = os.environ.get('DATA_PATH', 'data.json')
 ADMINS = ['aligolit15']
 def load():
     if not os.path.exists(DATA_FILE):
@@ -16,8 +16,10 @@ def load():
             d['users'] = []
         return d
 def save(data):
-    with open(DATA_FILE, 'w', encoding='utf-8') as f:
+    tmp = DATA_FILE + '.tmp'
+    with open(tmp, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
+    os.replace(tmp, DATA_FILE)
 def hash_pw(p):
     return hashlib.sha256(p.encode()).hexdigest()
 def login_page(msg=''):
